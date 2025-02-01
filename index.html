@@ -47,6 +47,32 @@
             z-index: 2;
         }
 
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: sparkleAnim 0.8s ease-out forwards;
+            z-index: 3;
+        }
+
+        @keyframes sparkleAnim {
+            0% {
+                transform: translateY(0) scale(0);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-20px) scale(0.5);
+                opacity: 0;
+            }
+        }
+
         @keyframes bounce {
             0% {
                 transform: scale(0.2) rotate(-10deg);
@@ -90,7 +116,6 @@
         const colors = ['#FF6B6B', '#4ECDC4', '#FFD93D', '#9B59B6', '#A8E6CF', '#FF8B3D', '#98D8D6', '#FF5252', '#E0BBE4', '#99d2ed', '#ffb8bc'];
         const characters = ['1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'];
         
-        // Sun/Moon variables
         let pressCount = 0;
         const maxPresses = 200;
         const celestial = document.getElementById('celestial');
@@ -113,6 +138,25 @@
                 type: 'sawtooth'
             }
         };
+
+        function createSparkles(x, y) {
+            const sparkleColors = ['#FFE5B4', '#FFF4E0', '#FFFFFF', '#FFF8DC'];
+            for (let i = 0; i < 10; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = x + 'px';
+                sparkle.style.top = y + 'px';
+                sparkle.style.background = sparkleColors[Math.floor(Math.random() * sparkleColors.length)];
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 30;
+                sparkle.style.left = (x + Math.cos(angle) * distance) + 'px';
+                sparkle.style.top = (y + Math.sin(angle) * distance) + 'px';
+                
+                document.body.appendChild(sparkle);
+                setTimeout(() => sparkle.remove(), 800);
+            }
+        }
         
         function updateCelestial() {
             const progress = pressCount / maxPresses;
@@ -156,6 +200,7 @@
             effect.style.backgroundImage = `url(${randomChar})`;
             
             document.body.appendChild(effect);
+            createSparkles(x, y);
             setTimeout(() => effect.remove(), 800);
         }
 
@@ -169,6 +214,7 @@
             effect.style.backgroundImage = `url(${randomChar})`;
             
             document.body.appendChild(effect);
+            createSparkles(x, y);
             setTimeout(() => effect.remove(), 800);
         }
 
