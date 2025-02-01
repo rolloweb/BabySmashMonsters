@@ -1,1 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Baby Art Kawaii Day Night</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #99d2ed;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            transition: background-color 1s;
+        }
 
+        #celestial {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: #ffdb67;
+            border-radius: 50%;
+            top: 50px;
+            left: 0;
+            box-shadow: 0 0 50px #ffdb67;
+            transition: all 0.5s;
+            z-index: 1;
+        }
+
+        .effect {
+            position: absolute;
+            pointer-events: none;
+            animation: bounce 0.8s ease-out forwards;
+            width: 100px;
+            height: 100px;
+            transform-origin: center;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2));
+            z-index: 2;
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: scale(0.2) rotate(-10deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2) rotate(10deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 0;
+            }
+        }
+
+        #logo {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            opacity: 0.3;
+            width: 100px;
+            height: auto;
+            z-index: 3;
+            transition: opacity 0.3s;
+            cursor: pointer;
+        }
+
+        #logo:hover {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div id="celestial"></div>
+    <img id="logo" src="funk3000_logo.png" alt="Funk3000">
+    <script>
+        let lastMove = 0;
+        let isMoving = false;
+        let moveTimeout;
+        let currentColor = '#FF6B6B';
+        const colors = ['#FF6B6B', '#4ECDC4', '#FFD93D', '#9B59B6', '#A8E6CF', '#FF8B3D', '#98D8D6', '#FF5252', '#E0BBE4', '#99d2ed', '#ffb8bc'];
+        const characters = ['1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'];
+        
+        // Sun/Moon variables
+        let pressCount = 0;
+        const maxPresses = 200;
+        const celestial = document.getElementById('celestial');
+
+        const animalPatterns = {
+            'cat': {
+                notes: [[880, 0.1], [440, 0.2]],
+                type: 'sine'
+            },
+            'dog': {
+                notes: [[100, 0.1], [60, 0.1]],
+                type: 'square'
+            },
+            'bird': {
+                notes: [[1200, 0.1], [1000, 0.1], [1200, 0.1]],
+                type: 'sine'
+            },
+            'duck': {
+                notes: [[200, 0.1], [300, 0.1], [200, 0.1]],
+                type: 'sawtooth'
+            }
+        };
+        
+        function updateCelestial() {
+            const progress = pressCount / maxPresses;
+            const width = window.innerWidth - 150;
+            const height = window.innerHeight + 150;
+            
+            const x = width * progress;
+            const y = height - Math.sin(Math.PI * progress) * (height/1.5);
+            
+            celestial.style.left = x + 'px';
+            celestial.style.top = y + 'px';
+            
+            if (progress < 0.5) {
+                document.body.style.backgroundColor = '#99d2ed';
+                celestial.style.backgroundColor = '#ffdb67';
+                celestial.style.boxShadow = '0 0 50px #ffdb67';
+            } else {
+                document.body.style.backgroundColor = '#1a4b77';
+                celestial.style.backgroundColor = '#ffffff';
+                celestial.style.boxShadow = '0 0 50px #ffffff';
+            }
+            
+            if (pressCount >= maxPresses) {
+                pressCount = 0;
+                celestial.style.transition = 'none';
+                updateCelestial();
+                setTimeout(() => {
+                    celestial.style.transition = 'all 0.5s';
+                }, 50);
+            }
+        }
+
+        function createMovingEffect(x, y) {
+            const effect = document.createElement('div');
+            effect.className = 'effect';
+            effect.style.left = (x - 25) + 'px';
+            effect.style.top = (y - 25) + 'px';
+            effect.style.transform = 'scale(0.5)';
+            
+            const randomChar = characters[Math.floor(Math.random() * characters.length)];
+            effect.style.backgroundImage = `url(${randomChar})`;
+            
+            document.body.appendChild(effect);
+            setTimeout(() => effect.remove(), 800);
+        }
+
+        function createStoppedEffect(x, y) {
+            const effect = document.createElement('div');
+            effect.className = 'effect';
+            effect.style.left = (x - 50) + 'px';
+            effect.style.top = (y - 50) + 'px';
+            
+            const randomChar = characters[Math.floor(Math.random() * characters.length)];
+            effect.style.backgroundImage = `url(${randomChar})`;
+            
+            document.body.appendChild(effect);
+            setTimeout(() => effect.remove(), 800);
+        }
+
+        window.addEventListener('mousemove', function(e) {
+            const now = Date.now();
+            if (now - lastMove > 50) {
+                isMoving = true;
+                clearTimeout(moveTimeout);
+                createMovingEffect(e.clientX, e.clientY);
+                playSound();
+                lastMove = now;
+
+                moveTimeout = setTimeout(() => {
+                    isMoving = false;
+                    currentColor = colors[Math.floor(Math.random() * colors.length)];
+                    createStoppedEffect(e.clientX, e.clientY);
+                }, 150);
+            }
+        });
+
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'Alt' || e.key === 'Meta' || e.key === 'Tab' || e.key === 'F4' || e.ctrlKey || e.altKey) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+            
+            e.preventDefault();
+            pressCount++;
+            updateCelestial();
+
+            const randomX = Math.random() * window.innerWidth;
+            const randomY = Math.random() * window.innerHeight;
+            currentColor = colors[Math.floor(Math.random() * colors.length)];
+            createStoppedEffect(randomX, randomY);
+            playSound();
+        });
+
+        window.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            pressCount++;
+            updateCelestial();
+            
+            const touch = e.touches[0];
+            currentColor = colors[Math.floor(Math.random() * colors.length)];
+            createStoppedEffect(touch.clientX, touch.clientY);
+            playSound();
+        }, { passive: false });
+
+        window.addEventListener('click', function(e) {
+            pressCount++;
+            updateCelestial();
+            
+            currentColor = colors[Math.floor(Math.random() * colors.length)];
+            createStoppedEffect(e.clientX, e.clientY);
+            playSound();
+        });
+
+        window.addEventListener('contextmenu', e => e.preventDefault());
+
+        let audioContext;
+        const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00];
+
+        function playSound() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const warmup = audioContext.createOscillator();
+                const warmupGain = audioContext.createGain();
+                warmupGain.gain.value = 0;
+                warmup.connect(warmupGain);
+                warmupGain.connect(audioContext.destination);
+                warmup.start();
+                warmup.stop(audioContext.currentTime + 0.1);
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = notes[Math.floor(Math.random() * notes.length)];
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.1);
+            gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        function playAnimalSound() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const animals = Object.keys(animalPatterns);
+            const animal = animals[Math.floor(Math.random() * animals.length)];
+            const pattern = animalPatterns[animal];
+            
+            pattern.notes.forEach(([frequency, duration], index) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.type = pattern.type;
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime + index * duration);
+                
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime + index * duration);
+                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + index * duration + 0.05);
+                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + index * duration + duration);
+
+                oscillator.start(audioContext.currentTime + index * duration);
+                oscillator.stop(audioContext.currentTime + index * duration + duration);
+            });
+        }
+
+        document.getElementById('logo').addEventListener('click', function(e) {
+            e.stopPropagation();
+            playAnimalSound();
+        });
+
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(function(error) {
+                console.log('Orientation lock failed:', error);
+            });
+        }
+
+        document.body.addEventListener('click', function() {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            }
+        }, { once: true });
+
+        updateCelestial();
+    </script>
+</body>
+</html>
